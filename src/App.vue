@@ -93,9 +93,10 @@ export default {
         me.approvalid.push(id);
       })
 
-      socket.on('askApprovalResponse', ({to, approved}) => {
+      socket.on('askApprovalResponse', ({to, approved, roomid}) => {
         console.log(to)
         console.log(approved)
+        console.log(roomid)
       })
     },
     approvalLayanan: function() {
