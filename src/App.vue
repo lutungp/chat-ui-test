@@ -42,6 +42,7 @@
 <script>
 // import HelloWorld from './components/HelloWorld.vue'
 import socket from "./socket";
+import axios from 'axios'
 
 export default {
   name: 'App',
@@ -57,11 +58,16 @@ export default {
       idUser: "",
       idmitra : "",
       idlayanan: "",
-      approvalid: []
+      approvalid: [],
+      sessionID: localStorage.getItem("sessionID")
     }
   },
   created(){
     socket.connect();
+    if (this.sessionID) {
+      this.isLogin = true;
+      this.getSession(this.sessionID);
+    }
   },
   methods : {
     connect: function(){
@@ -74,7 +80,6 @@ export default {
       });
 
       socket.on("session", ({ sessionID }) => {
-        console.log(sessionID)
         // attach the session ID to the next reconnection attempt
         socket.auth = {
           id: sessionID,
@@ -99,6 +104,29 @@ export default {
         console.log(roomid)
       })
     },
+    reconnect: function () {
+      let me = this;
+      socket.emit('userLogin', {
+        id: me.sessionID,
+        user_uuid: me.userid,
+        layanan_uuid: me.userlayanan,
+        mitra_uuid: me.usermitra
+      });
+
+      socket.on("session", ({ sessionID }) => {
+        // attach the session ID to the next reconnection attempt
+        socket.auth = {
+          id: sessionID,
+          user_uuid: me.userid,
+          layanan_uuid: me.userlayanan,
+          mitra_uuid: me.usermitra
+        };
+        // store it in the localStorage
+        localStorage.setItem("sessionID", sessionID);
+        // save the ID of the user
+        me.isLogin = true;
+      });
+    },
     approvalLayanan: function() {
       socket.emit('approvalLayanan', {
         idmitra: this.idmitra,
@@ -112,6 +140,24 @@ export default {
     approved(id){
       socket.emit('approvingLayanan', id);
     },
+    getSession(id){
+      let me = this;
+        axios.get('http://localhost:8000/sessionactive/' + id)
+        .then(res => {
+          if (res.data.total > 0) {
+            me.userid    = res.data.data.usersocket_uuid;
+            me.userlayanan = res.data.data.layanan_uuid;
+            me.usermitra   = res.data.data.mitra_uuid;
+
+            me.reconnect();
+          } else {
+            me.isLogin = false;
+            localStorage.removeItem("sessionID");
+          }
+        }).catch ((err) => {
+          console.log(err);
+        })
+    }
   }
 }
 </script>
