@@ -21,7 +21,7 @@
             <tr>
               <th align="center">No.</th>
               <th align="center">Description</th>
-              <th align="center">Actioni</th>
+              <th align="center">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -33,6 +33,40 @@
               </td>
             </tr>
           </tbody>
+        </table>
+      </div>
+      <div>
+        <table>
+          <tr>
+            <td>
+              <label for="">Room</label>
+              <input type="text" v-model="roomchat_id">
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="">User</label>
+              <select name="" id="" v-model="userrole">
+                <option value="customer">CUSTOMER</option>
+                <option value="partner">PARTNER</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <textarea name="" id="" cols="30" rows="10" v-model="inbox"></textarea>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <textarea name="" id="" cols="30" rows="10" v-model="message"></textarea>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <button @click="sendMessage()">send</button>
+            </td>
+          </tr>
         </table>
       </div>
     </div>
@@ -59,7 +93,12 @@ export default {
       idmitra : "",
       idlayanan: "",
       approvalid: [],
-      sessionID: localStorage.getItem("sessionID")
+      sessionID: localStorage.getItem("sessionID"),
+      roomchat: [],
+      roomchat_id: '',
+      message: '',
+      inbox: '',
+      userrole: ''
     }
   },
   created(){
@@ -68,6 +107,14 @@ export default {
       this.isLogin = true;
       this.getSession(this.sessionID);
     }
+
+    socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, message }) => {
+      console.log({
+        'roomchat_id' : roomchat_id,
+        'usertujuan_id' : usertujuan_id,
+        'message' : message
+      })
+    })
   },
   methods : {
     connect: function(){
@@ -89,6 +136,7 @@ export default {
         };
         // store it in the localStorage
         localStorage.setItem("sessionID", sessionID);
+        this.getRoomChat(sessionID);
         // save the ID of the user
         me.isLogin = true;
       });
@@ -102,6 +150,14 @@ export default {
         console.log(to)
         console.log(approved)
         console.log(roomid)
+      })
+
+      socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, message }) => {
+        console.log({
+          'roomchat_id' : roomchat_id,
+          'usertujuan_id' : usertujuan_id,
+          'message' : message
+        })
       })
     },
     reconnect: function () {
@@ -123,8 +179,28 @@ export default {
         };
         // store it in the localStorage
         localStorage.setItem("sessionID", sessionID);
+        this.getRoomChat(sessionID);
         // save the ID of the user
         me.isLogin = true;
+      });
+
+      socket.on("askApproval", ({ to, id }) => {
+        alert("to : " + to);
+        me.approvalid.push(id);
+      })
+
+      socket.on('askApprovalResponse', ({to, approved, roomid}) => {
+        console.log(to)
+        console.log(approved)
+        console.log(roomid)
+      });
+    
+      socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, message }) => {
+        console.log({
+          'roomchat_id' : roomchat_id,
+          'usertujuan_id' : usertujuan_id,
+          'message' : message
+        })
       });
     },
     approvalLayanan: function() {
@@ -132,6 +208,13 @@ export default {
         idmitra: this.idmitra,
         idlayanan: this.idlayanan
       });
+      socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, message }) => {
+        console.log({
+          'roomchat_id' : roomchat_id,
+          'usertujuan_id' : usertujuan_id,
+          'message' : message
+        })
+      })      
     },
     disconnect: function(){
       this.isLogin = false;
@@ -139,24 +222,59 @@ export default {
     },
     approved(id){
       socket.emit('approvingLayanan', id);
+      socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, message }) => {
+        console.log({
+          'roomchat_id' : roomchat_id,
+          'usertujuan_id' : usertujuan_id,
+          'message' : message
+        })
+      })
     },
     getSession(id){
       let me = this;
-        axios.get('http://localhost:8000/sessionactive/' + id)
-        .then(res => {
-          if (res.data.total > 0) {
-            me.userid    = res.data.data.usersocket_uuid;
-            me.userlayanan = res.data.data.layanan_uuid;
-            me.usermitra   = res.data.data.mitra_uuid;
+      axios.get('http://localhost:8000/sessionactive/' + id)
+      .then(res => {
+        console.log(res)
+        if (res.data.total > 0) {
+          me.userid    = res.data.data.user_uuid;
+          me.userlayanan = res.data.data.layanan_uuid;
+          me.usermitra   = res.data.data.mitra_uuid;
 
-            me.reconnect();
-          } else {
-            me.isLogin = false;
-            localStorage.removeItem("sessionID");
-          }
-        }).catch ((err) => {
-          console.log(err);
+          me.reconnect();
+        } else {
+          me.isLogin = false;
+          localStorage.removeItem("sessionID");
+        }
+      }).catch ((err) => {
+        console.log(err);
+      })
+    },
+    getRoomChat(id){
+      let me = this;
+      axios.get('http://localhost:8000/myroomchat/' + id)
+      .then(res => {
+        me.roomchat = res.data.data
+      }).catch ((err) => {
+        console.log(err);
+      })
+    },
+    sendMessage(){
+      let me = this;
+      var message = {
+        roomchat_id: me.roomchat_id,
+        userrole: me.userrole,
+        message: me.message
+      };
+
+      socket.emit('sendPrivateMsg', message);
+
+      socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, message }) => {
+        console.log({
+          'roomchat_id' : roomchat_id,
+          'usertujuan_id' : usertujuan_id,
+          'message' : message
         })
+      })
     }
   }
 }
