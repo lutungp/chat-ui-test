@@ -98,7 +98,8 @@ export default {
       roomchat_id: '',
       message: '',
       inbox: '',
-      userrole: ''
+      userrole: '',
+      token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3Q6ODAwMFwvYXV0aFwvbG9naW4iLCJpYXQiOjE2MzcxNTI5NTcsImV4cCI6MTYzNzIxMjk1NywibmJmIjoxNjM3MTUyOTU3LCJqdGkiOiJBVk12V0k5TVNndlkwd0tBIiwic3ViIjozNywicHJ2IjoiMjNiZDVjODk0OWY2MDBhZGIzOWU3MDFjNDAwODcyZGI3YTU5NzZmNyJ9.uMIIfSZPdR4_U0Q0sgX8QtVFJeCEaPAha-L2qUcnNzE'
     }
   },
   created(){
@@ -108,13 +109,36 @@ export default {
       this.getSession(this.sessionID);
     }
 
-    socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, message }) => {
+    socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, userpengirim_id, message, message_id, status }) => {
       console.log({
-        'roomchat_id' : roomchat_id,
-        'usertujuan_id' : usertujuan_id,
-        'message' : message
-      })
-    })
+        'roomchat_id': roomchat_id,
+        'usertujuan_id': usertujuan_id,
+        'userpengirim_id': userpengirim_id,
+        'message': message,
+        'message_id': message_id,
+        'status': status
+      });
+
+      socket.emit('receivedPrivateMsg', {
+        'roomchat_id': roomchat_id,
+        'usertujuan_id': usertujuan_id,
+        'userpengirim_id': userpengirim_id,
+        'message': message,
+        'message_id': message_id,
+        'status': status
+      });
+    });
+
+    socket.on('receivedPrivateMsgResponse', ({ roomchat_id, usertujuan_id, userpengirim_id, message_id, status }) => {
+      console.log({
+        'roomchat_id': roomchat_id,
+        'usertujuan_id': usertujuan_id,
+        'userpengirim_id': userpengirim_id,
+        'message_id': message_id,
+        'status': status
+      });
+    });
+
   },
   methods : {
     connect: function(){
@@ -151,14 +175,6 @@ export default {
         console.log(approved)
         console.log(roomid)
       })
-
-      socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, message }) => {
-        console.log({
-          'roomchat_id' : roomchat_id,
-          'usertujuan_id' : usertujuan_id,
-          'message' : message
-        })
-      })
     },
     reconnect: function () {
       let me = this;
@@ -194,27 +210,12 @@ export default {
         console.log(approved)
         console.log(roomid)
       });
-    
-      socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, message }) => {
-        console.log({
-          'roomchat_id' : roomchat_id,
-          'usertujuan_id' : usertujuan_id,
-          'message' : message
-        })
-      });
     },
     approvalLayanan: function() {
       socket.emit('approvalLayanan', {
         idmitra: this.idmitra,
         idlayanan: this.idlayanan
       });
-      socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, message }) => {
-        console.log({
-          'roomchat_id' : roomchat_id,
-          'usertujuan_id' : usertujuan_id,
-          'message' : message
-        })
-      })      
     },
     disconnect: function(){
       this.isLogin = false;
@@ -222,13 +223,6 @@ export default {
     },
     approved(id){
       socket.emit('approvingLayanan', id);
-      socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, message }) => {
-        console.log({
-          'roomchat_id' : roomchat_id,
-          'usertujuan_id' : usertujuan_id,
-          'message' : message
-        })
-      })
     },
     getSession(id){
       let me = this;
@@ -242,7 +236,7 @@ export default {
         config => {
           // Do something before request is sent
 
-          config.headers["Authorization"] = "bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3Q6ODAwMFwvYXV0aFwvbG9naW4iLCJpYXQiOjE2MzcwNzcyNDAsImV4cCI6MTYzNzEzNzI0MCwibmJmIjoxNjM3MDc3MjQwLCJqdGkiOiJLZmRBZ1hFeXNNZmZTbWw4Iiwic3ViIjozNywicHJ2IjoiMjNiZDVjODk0OWY2MDBhZGIzOWU3MDFjNDAwODcyZGI3YTU5NzZmNyJ9.YP2yaH02APVnu0FYdi4tqRMnjQOTszUpYmWkjSGW-hc";
+          config.headers["Authorization"] = "bearer " + this.token;
           return config;
         },
         error => {
@@ -281,7 +275,7 @@ export default {
         config => {
           // Do something before request is sent
 
-          config.headers["Authorization"] = "bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3Q6ODAwMFwvYXV0aFwvbG9naW4iLCJpYXQiOjE2MzcwNzcyNDAsImV4cCI6MTYzNzEzNzI0MCwibmJmIjoxNjM3MDc3MjQwLCJqdGkiOiJLZmRBZ1hFeXNNZmZTbWw4Iiwic3ViIjozNywicHJ2IjoiMjNiZDVjODk0OWY2MDBhZGIzOWU3MDFjNDAwODcyZGI3YTU5NzZmNyJ9.YP2yaH02APVnu0FYdi4tqRMnjQOTszUpYmWkjSGW-hc";
+          config.headers["Authorization"] = "bearer " + this.token;
           return config;
         },
         error => {
@@ -306,14 +300,6 @@ export default {
       };
 
       socket.emit('sendPrivateMsg', message);
-
-      socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, message }) => {
-        console.log({
-          'roomchat_id' : roomchat_id,
-          'usertujuan_id' : usertujuan_id,
-          'message' : message
-        })
-      })
     }
   }
 }
