@@ -232,7 +232,26 @@ export default {
     },
     getSession(id){
       let me = this;
-      axios.get('http://localhost:8000/sessionactive/' + id)
+            const service = axios.create({
+        timeout: 20000 // request timeout
+      });
+
+      // request interceptor
+
+      service.interceptors.request.use(
+        config => {
+          // Do something before request is sent
+
+          config.headers["Authorization"] = "bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3Q6ODAwMFwvYXV0aFwvbG9naW4iLCJpYXQiOjE2MzcwNzcyNDAsImV4cCI6MTYzNzEzNzI0MCwibmJmIjoxNjM3MDc3MjQwLCJqdGkiOiJLZmRBZ1hFeXNNZmZTbWw4Iiwic3ViIjozNywicHJ2IjoiMjNiZDVjODk0OWY2MDBhZGIzOWU3MDFjNDAwODcyZGI3YTU5NzZmNyJ9.YP2yaH02APVnu0FYdi4tqRMnjQOTszUpYmWkjSGW-hc";
+          return config;
+        },
+        error => {
+          Promise.reject(error);
+        }
+      );      
+      
+
+      service.get('http://localhost:8000/sessionactive/' + id)
       .then(res => {
         console.log(res)
         if (res.data.total > 0) {
@@ -251,7 +270,27 @@ export default {
     },
     getRoomChat(id){
       let me = this;
-      axios.get('http://localhost:8000/myroomchat/' + id)
+
+      const service = axios.create({
+        timeout: 20000 // request timeout
+      });
+
+      // request interceptor
+
+      service.interceptors.request.use(
+        config => {
+          // Do something before request is sent
+
+          config.headers["Authorization"] = "bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3Q6ODAwMFwvYXV0aFwvbG9naW4iLCJpYXQiOjE2MzcwNzcyNDAsImV4cCI6MTYzNzEzNzI0MCwibmJmIjoxNjM3MDc3MjQwLCJqdGkiOiJLZmRBZ1hFeXNNZmZTbWw4Iiwic3ViIjozNywicHJ2IjoiMjNiZDVjODk0OWY2MDBhZGIzOWU3MDFjNDAwODcyZGI3YTU5NzZmNyJ9.YP2yaH02APVnu0FYdi4tqRMnjQOTszUpYmWkjSGW-hc";
+          return config;
+        },
+        error => {
+          Promise.reject(error);
+        }
+      );      
+      
+
+      service.get('http://localhost:8000/myroomchat/' + id)
       .then(res => {
         me.roomchat = res.data.data
       }).catch ((err) => {
