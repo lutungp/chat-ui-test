@@ -4,6 +4,7 @@
     <HelloWorld msg="Welcome to Your Vue.js App"/> -->
     <div v-if="!isLogin">
       <label for="">User</label><input type="text" v-model="userid">&nbsp;
+      <label for="">Nama</label><input type="text" v-model="usernama">&nbsp;
       <label for="">Layanan</label><input type="text" v-model="userlayanan">&nbsp;
       <label for="">Mitra</label><input type="text" v-model="usermitra">&nbsp;
       <button @click="connect">Connect</button>
@@ -87,6 +88,7 @@ export default {
     return {
       isLogin: false,
       userid: "",
+      usernama: "",
       userlayanan: "",
       usermitra: "",
       idUser: "",
@@ -99,7 +101,9 @@ export default {
       message: '',
       inbox: '',
       userrole: '',
-      token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3Q6ODAwMFwvYXV0aFwvbG9naW4iLCJpYXQiOjE2MzcxNTI5NTcsImV4cCI6MTYzNzIxMjk1NywibmJmIjoxNjM3MTUyOTU3LCJqdGkiOiJBVk12V0k5TVNndlkwd0tBIiwic3ViIjozNywicHJ2IjoiMjNiZDVjODk0OWY2MDBhZGIzOWU3MDFjNDAwODcyZGI3YTU5NzZmNyJ9.uMIIfSZPdR4_U0Q0sgX8QtVFJeCEaPAha-L2qUcnNzE'
+      // base_url: 'http://localhost:8004',
+      base_url: 'https://api-triplei.internaldarbegroup.com',
+      token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8xMjcuMC4wLjE6ODAwNFwvXC9hdXRoXC9sb2dpbiIsImlhdCI6MTYzNzc2ODAyMSwiZXhwIjoxNjM3ODI4MDIxLCJuYmYiOjE2Mzc3NjgwMjEsImp0aSI6ImpvdDFseWtlTWJieUQ4T2EiLCJzdWIiOjQ5LCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.GuWRHw1nPttZ2nFd8FKBTwtmpHxnJt-ch-RYXDSfjao'
     }
   },
   created(){
@@ -109,11 +113,13 @@ export default {
       this.getSession(this.sessionID);
     }
 
-    socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, userpengirim_id, message, message_id, status }) => {
+    socket.on("gotPrivateMsg", ({ roomchat_id, usertujuan_id, usertujuan_nama, userpengirim_id, userpengirim_nama, message, message_id, status }) => {
       console.log({
         'roomchat_id': roomchat_id,
         'usertujuan_id': usertujuan_id,
+        'usertujuan_nama': usertujuan_nama,
         'userpengirim_id': userpengirim_id,
+        'userpengirim_nama': userpengirim_nama,
         'message': message,
         'message_id': message_id,
         'status': status
@@ -122,18 +128,23 @@ export default {
       socket.emit('receivedPrivateMsg', {
         'roomchat_id': roomchat_id,
         'usertujuan_id': usertujuan_id,
+        'usertujuan_nama': usertujuan_nama,
         'userpengirim_id': userpengirim_id,
+        'userpengirim_nama': userpengirim_nama,
         'message': message,
         'message_id': message_id,
         'status': status
       });
     });
 
-    socket.on('receivedPrivateMsgResponse', ({ roomchat_id, usertujuan_id, userpengirim_id, message_id, status }) => {
+    socket.on('receivedPrivateMsgResponse', ({ roomchat_id, usertujuan_id, usertujuan_nama, userpengirim_id, userpengirim_nama, message, message_id, status }) => {
       console.log({
         'roomchat_id': roomchat_id,
         'usertujuan_id': usertujuan_id,
+        'usertujuan_nama': usertujuan_nama,
         'userpengirim_id': userpengirim_id,
+        'userpengirim_nama': userpengirim_nama,
+        'message': message,
         'message_id': message_id,
         'status': status
       });
@@ -146,8 +157,11 @@ export default {
       socket.emit('userLogin', {
         id: null,
         user_uuid: me.userid,
+        user_nama: me.usernama,
         layanan_uuid: me.userlayanan,
-        mitra_uuid: me.usermitra
+        layanan_nama: 'layanan_nama',
+        mitra_uuid: me.usermitra,
+        mitra_nama: 'mitra_nama'
       });
 
       socket.on("session", ({ sessionID }) => {
@@ -245,9 +259,8 @@ export default {
       );      
       
 
-      service.get('http://localhost:8000/sessionactive/' + id)
+      service.get(this.base_url + '/sessionactive/' + id)
       .then(res => {
-        console.log(res)
         if (res.data.total > 0) {
           me.userid    = res.data.data.user_uuid;
           me.userlayanan = res.data.data.layanan_uuid;
@@ -284,7 +297,7 @@ export default {
       );      
       
 
-      service.get('http://localhost:8000/myroomchat/' + id)
+      service.get(this.base_url + '/myroomchat/' + id)
       .then(res => {
         me.roomchat = res.data.data
       }).catch ((err) => {
