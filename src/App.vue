@@ -101,9 +101,9 @@ export default {
       message: '',
       inbox: '',
       userrole: '',
-      // base_url: 'http://localhost:8004',
-      base_url: 'https://api-triplei.internaldarbegroup.com',
-      token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8xMjcuMC4wLjE6ODAwNFwvXC9hdXRoXC9sb2dpbiIsImlhdCI6MTYzNzc2ODAyMSwiZXhwIjoxNjM3ODI4MDIxLCJuYmYiOjE2Mzc3NjgwMjEsImp0aSI6ImpvdDFseWtlTWJieUQ4T2EiLCJzdWIiOjQ5LCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.GuWRHw1nPttZ2nFd8FKBTwtmpHxnJt-ch-RYXDSfjao'
+      base_url: 'http://localhost:8004',
+      // base_url: 'https://api-triplei.internaldarbegroup.com',
+      token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3Q6NTQwMFwvYXV0aFwvbG9naW4iLCJpYXQiOjE2Mzk4Mzg0NTQsImV4cCI6MTY0MDI3MDQ1NCwibmJmIjoxNjM5ODM4NDU0LCJqdGkiOiJLYllYSjdWNmQ4RkRTMEVCIiwic3ViIjoxMDksInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.z3mGjpuQtcXYrpyuyhT2UGdojidPQfF2ybh9J4xLeME'
     }
   },
   created(){
