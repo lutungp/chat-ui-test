@@ -68,6 +68,11 @@
               <button @click="sendMessage()">send</button>
             </td>
           </tr>
+          <tr>
+            <td>
+              <button @click="endRoomChat()">end chat</button>
+            </td>
+          </tr>
         </table>
       </div>
     </div>
@@ -103,7 +108,7 @@ export default {
       userrole: '',
       base_url: 'http://localhost:8004',
       // base_url: 'https://api-triplei.internaldarbegroup.com',
-      token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3Q6NTQwMFwvYXV0aFwvbG9naW4iLCJpYXQiOjE2Mzk4Mzg0NTQsImV4cCI6MTY0MDI3MDQ1NCwibmJmIjoxNjM5ODM4NDU0LCJqdGkiOiJLYllYSjdWNmQ4RkRTMEVCIiwic3ViIjoxMDksInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.z3mGjpuQtcXYrpyuyhT2UGdojidPQfF2ybh9J4xLeME'
+      token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3Q6NTQwMFwvYXV0aFwvbG9naW4iLCJpYXQiOjE2NDMyOTE2NzMsImV4cCI6MTY0MzcyMzY3MywibmJmIjoxNjQzMjkxNjczLCJqdGkiOiJOdXZUS1ZQR0hoSUhZMHUzIiwic3ViIjoxMDksInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.kULpLBr1Fc2yv1j8w9ZT6GsEIy53MKqh3adwNZfqBEg'
     }
   },
   created(){
@@ -154,6 +159,7 @@ export default {
   methods : {
     connect: function(){
       let me = this;
+      
       socket.emit('userLogin', {
         id: null,
         user_uuid: me.userid,
@@ -172,6 +178,8 @@ export default {
           layanan_uuid: me.userlayanan,
           mitra_uuid: me.usermitra
         };
+
+        console.log(sessionID)
         // store it in the localStorage
         localStorage.setItem("sessionID", sessionID);
         this.getRoomChat(sessionID);
@@ -179,13 +187,16 @@ export default {
         me.isLogin = true;
       });
 
-      socket.on("askApproval", ({ to, id }) => {
+      socket.on("askApproval", ({ to, id, expired_at }) => {
         alert("to : " + to);
+        console.log(id);
+        console.log(expired_at)
         me.approvalid.push(id);
       })
 
-      socket.on('askApprovalResponse', ({to, approved, roomid}) => {
+      socket.on('askApprovalResponse', ({to, toid, approved, roomid}) => {
         console.log(to)
+        console.log(toid)
         console.log(approved)
         console.log(roomid)
       })
@@ -207,6 +218,8 @@ export default {
           layanan_uuid: me.userlayanan,
           mitra_uuid: me.usermitra
         };
+
+        console.log(sessionID)
         // store it in the localStorage
         localStorage.setItem("sessionID", sessionID);
         this.getRoomChat(sessionID);
@@ -216,6 +229,7 @@ export default {
 
       socket.on("askApproval", ({ to, id }) => {
         alert("to : " + to);
+        console.log(id);
         me.approvalid.push(id);
       })
 
@@ -313,6 +327,14 @@ export default {
       };
 
       socket.emit('sendPrivateMsg', message);
+    },
+    endRoomChat(){
+      let me = this;
+      var data = {
+        roomchat_id: me.roomchat_id
+      }
+      console.log(data)
+      socket.emit('endRoomChat', data);
     }
   }
 }
